@@ -1,0 +1,54 @@
+﻿@model List<BooksListViewModel>;
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container">
+    
+    <a href="create" class="btn btn-primary mb-5">
+        <i class="las la-plus"></i> New Book 
+    </a>
+    
+    @if(Model.Count() > 0)
+    {
+        <div class="row">
+
+        @foreach(var book in Model)
+        {
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="card text-center mb-3 w-100 rounded-5 overflow-hidden">
+                    <div class="card-body">
+                        <div class="card-title">
+                            <p class="mb-0 fw-bold fs-4 text-truncate">@book.CustomerName</p>
+                            <small class="text-muted mt-0 ">@book.BranchName</small>
+                    
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <span class="fw-bold d-block">CheckIn</span>
+                                    @book.CheckIn
+                                </div>
+                                <div>
+                                    <span class="fw-bold d-block">CheckOut</span>
+                                    @book.CheckOut
+                                </div>
+                            </div>
+                        </div>
+
+                        <a asp-action="Details" asp-route-id="@book.Id" class="btn btn-primary">Details</a>
+                    </div>
+                </div>
+            </div>
+            
+        }
+        </div>
+
+    }
+    else{
+        <div>
+            <p class="h1 align-items-center text-center mt-5">
+                <i class="las la-file"></i> No Books Added yet 
+            </p>
+        </div>
+    }
+
+</div>

@@ -1,0 +1,197 @@
+﻿@model Hotels.ViewModel.CreateBookViewModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+
+<hr class="my-4" />
+<div class="row">
+    <div class="col-lg-6 col-sm-12">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group mb-4">
+                <label asp-for="CustomerName" class="control-label"></label>
+                <input asp-for="CustomerName" class="form-control" />
+                <span asp-validation-for="CustomerName" class="text-danger"></span>
+            </div>
+            <div class="form-group  mb-4">
+                <label asp-for="NationalId" class="control-label"></label>
+                <input onkeypress="loading()" onchange="checkDiscount()" asp-for="NationalId" id="NationalId" class="form-control" />
+                <span asp-validation-for="NationalId" class="text-danger"></span>
+            </div>
+            <div class="form-group  mb-4">
+                <label asp-for="PhoneNumber" class="control-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group  mb-4">
+                <label class="control-label"> Branch </label>
+                <select asp-for="BranchId" class="form-control" >
+                    <option></option>
+                    @foreach (var branch in ViewBag.Branches)
+                    {
+                        <option value="@branch?.Id">@branch?.Name</option>
+                    }
+                </select>
+                <span asp-validation-for="BranchId" class="text-danger"></span>
+            </div>
+            <div class="form-group d-flex justify-content-between mb-4">
+                <div class="">
+                    <label asp-for="CheckIn" class="control-label"></label>
+                    <input asp-for="CheckIn" class="form-control" />
+                    <span asp-validation-for="CheckIn" class="text-danger"></span>
+                </div>
+                <div class="">
+
+                    <label asp-for="CheckOut" class="control-label"></label>
+                    <input asp-for="CheckOut" class="form-control" />
+                    <span asp-validation-for="CheckOut" class="text-danger"></span>
+                </div>
+            </div>
+            
+            <div class="form-group  mb-4" id="rooms_section">
+                <div class="row w-100 mt-2">
+                    <div class="col-6">
+                        <label class="control-label"> room </label>
+                        <select onchange="updatePrice()" id="firstroom" name="rooms[0].RoomType" class="roomtype form-control" required>
+                        <option value=""></option>
+                        @foreach (int val in Enum.GetValues(typeof(RoomTypes)))
+                        {
+                           var name = Enum.GetName(typeof(RoomTypes), val);
+                           <option data-price="@val" value="@name">@name -- @val EGP</option>
+                        }
+                        </select>
+                    </div>
+                    <div class="col-3">
+                        <label class="control-label"> Adults Number</label>
+                        <input min="1" name="rooms[0].AdultsNumber" type="number" class="form-control" />
+                    </div>
+                    <div class="col-3">
+                        <label class="control-label">Children Number</label>
+                        <input min="0" name="rooms[0].ChildrenNumber" type="number" class="form-control" />
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <button onclick="addNewRoom()" type="button" class="btn btn-success" style="height:38px; margin-top:24px"><i class="las la-plus"></i> add room </button>
+            </div>
+
+            <div class="d-flex justify-content-end mb-4">
+                <span class="text-success fw-bold" id="totalprice"></span>
+            </div>
+
+            <div class="form-group mb-4">
+                <button type="submit" class="btn btn-primary" >Book</button>
+            </div>
+            
+        </form>
+    </div>
+    
+    <div class="col-lg-6 col-sm-12 p-4">
+        <p id="discount_p">
+            if you booked into our system before make sure to enter the correct NationalId to get 
+            <span class="fw-bold text-success"> 5% discount</span>
+        </p>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+
+<script>
+    let counter = 1;
+    let discount = 0;
+    function updatePrice(){
+        let totalPrice = 0;
+
+        for (let room of document.getElementsByClassName('roomtype')) {
+            let price = 0;
+            for (let i of room.options)
+                if (i.selected)
+                    price = i.dataset.price
+            if (price > 0) {
+                totalPrice += parseInt(price);
+            }
+            document.getElementById('totalprice').innerHTML = `
+                <div class="text-end">
+                    <p class="text-success fw-bold">
+                        ${totalPrice}
+                    </p>
+                    <div class="text-success"> -  ${discount} %</div>
+                    <p class="text-success fw-bold">
+                            ${totalPrice - (totalPrice * (discount / 100))}
+                    </p>
+                </div>
+            `;
+        }
+    }
+    function addNewRoom(){
+        let newRoom = `
+        <div class="row w-100 mt-2">
+            <div class="col-6">
+                <label class="control-label"> room </label>
+                <select onchange="updatePrice()" name="rooms[${counter}].RoomType" class="roomtype form-control">
+                    <option value=""></option>
+
+                    @foreach (int val in Enum.GetValues(typeof(RoomTypes)))
+                    {
+                        var name = Enum.GetName(typeof(RoomTypes), val);
+                        <option data-price="@val" value="@name">@name -- @val EGP</option>
+                    }
+                </select>
+            </div>
+            <div class="col-3">
+                <label class="control-label"> Adults Number</label>
+                <input name="rooms[${counter}].AdultsNumber" type="number" class="form-control" />
+            </div>
+            <div class="col-3">
+                <label class="control-label">Adults Number</label>
+                <input name="rooms[${counter}].ChildrenNumber" type="number" class="form-control" />
+            </div>
+        </div>
+        `
+        let roomssection = document.getElementById('rooms_section')
+        roomssection.innerHTML += newRoom
+    }
+    function loading() {
+        document.getElementById('discount_p').innerHTML = `
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        `
+    }
+    function checkDiscount(){
+        
+        setTimeout(() => {
+            var nationalId = document.getElementById('NationalId');
+            if (nationalId?.value)
+                fetch(
+                    `/home/checkNationalid/${nationalId?.value}`)
+                    .then(res => {
+                        return res.json()
+                    }).then(data=>{
+                        if (data.exists_before) {
+                            document.getElementById('discount_p').innerHTML = `
+                                    <span class='text-success fw-bold'>5% Discount Applied</span>
+                                `
+                            discount = 5;
+                        }
+                        else{
+                            document.getElementById('discount_p').innerHTML = `
+                                <span class='text-black fw-bold'>Your NationalId will be saved for next Booking</span>
+                            `
+                        }
+                    })
+
+        }, 1000)
+    }
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
